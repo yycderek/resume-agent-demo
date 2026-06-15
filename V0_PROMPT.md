@@ -78,6 +78,14 @@ Input area (fixed bottom of chat panel):
 - "返回报告" icon button in chat header
 - Clicking sidebar items jumps chat to relevant context
 
+=== LANGUAGE TOGGLE (Global) ===
+- Fixed top-right corner, z-50, across ALL states
+- Small pill button: "中" / "EN", switching between Chinese and English
+- Styling: px-3 py-1.5, text-xs font-medium, rounded-full, border border-text-secondary/30, bg-white/80 backdrop-blur-sm, shadow-sm
+- Hover: border darkens, text color intensifies
+- Click toggles all UI text between Chinese and English
+- Default: Chinese (中)
+
 === GLOBAL ===
 - Font: Inter for headings, system sans-serif for CJK
 - All transitions: 300ms ease-out (Framer Motion)
