@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-const RESPONSES: Record<string, { content: string; suggestion?: string }> = {
+// ── Mock response bank (used when no API key configured) ──
+const MOCK_RESPONSES: Record<string, { content: string; suggestion?: string }> = {
   polish: {
     content:
       "Here's a polished version of your work experience with quantified metrics and stronger action verbs. I focused on adding measurable outcomes and aligning keywords with the JD requirements.",
@@ -52,36 +53,91 @@ const RESPONSES: Record<string, { content: string; suggestion?: string }> = {
   },
 };
 
+function getMockResponse(lastMsg: string) {
+  const msg = lastMsg.toLowerCase();
+  if (msg.includes("polish") || msg.includes("润色") || msg.includes("work experience")) return MOCK_RESPONSES.polish;
+  if (msg.includes("keyword") || msg.includes("关键词")) return MOCK_RESPONSES.keyword;
+  if (msg.includes("project") || msg.includes("项目") || msg.includes("rewrite")) return MOCK_RESPONSES.project;
+  if (msg.includes("english") || msg.includes("英文")) return MOCK_RESPONSES.english;
+  if (msg.includes("gap") || msg.includes("差距") || msg.includes("缺少") || msg.includes("弥补")) return MOCK_RESPONSES.gap;
+  return {
+    content:
+      "I understand you'd like to improve your resume. Based on your JD match analysis, here are the top areas we should work on:\n\n" +
+      "1. Your match score shows room for improvement in **Project Experience** — let's quantify your impact\n" +
+      "2. **Skill matching** can be boosted by adding middleware depth (Redis/Kafka specifics)\n" +
+      "3. Your education background is a strong point — let's feature it prominently\n\n" +
+      "What would you like to tackle first?",
+  };
+}
+
+// ── Real LLM call ──
+async function callLLM(
+  messages: { role: string; content: string }[],
+  context: { jd: string; resume: string; report: any }
+) {
+  const baseUrl = process.env.AI_API_BASE_URL || "";
+  const apiKey = process.env.AI_API_KEY || "";
+  const model = process.env.AI_MODEL || "deepseek-chat";
+  const systemPrompt = process.env.AI_SYSTEM_PROMPT || "You are a resume optimization assistant.";
+
+  const systemMsg = {
+    role: "system",
+    content: `${systemPrompt}\n\nContext:\n- JD: ${context.jd}\n- Resume: ${context.resume}\n- Match Score: ${context.report?.matchScore?.overall || "N/A"}%\n- Gaps: ${JSON.stringify(context.report?.gaps?.map((g: any) => g.description) || [])}\n\nWhen you suggest a rewrite, format it as a separate "SUGGESTION:" block at the end of your response so it can be extracted.`,
+  };
+
+  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [systemMsg, ...messages],
+      temperature: 0.7,
+      max_tokens: 1500,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`LLM API error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const fullContent = json.choices?.[0]?.message?.content || "";
+
+  // Parse suggestion block: look for "SUGGESTION:" marker
+  let content = fullContent;
+  let suggestion: string | undefined;
+
+  const sugIdx = fullContent.indexOf("SUGGESTION:");
+  if (sugIdx > -1) {
+    content = fullContent.substring(0, sugIdx).trim();
+    suggestion = fullContent.substring(sugIdx + "SUGGESTION:".length).trim();
+  }
+
+  return { content, suggestion };
+}
+
+// ── API Route ──
 export async function POST(request: Request) {
   const { messages, context, lang } = await request.json();
 
-  // Simulate AI response delay
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const apiKey = process.env.AI_API_KEY || "";
 
-  const lastMsg = (messages[messages.length - 1]?.content || "").toLowerCase();
-
-  let response: { content: string; suggestion?: string };
-
-  if (lastMsg.includes("polish") || lastMsg.includes("润色") || lastMsg.includes("work experience")) {
-    response = RESPONSES.polish;
-  } else if (lastMsg.includes("keyword") || lastMsg.includes("关键词")) {
-    response = RESPONSES.keyword;
-  } else if (lastMsg.includes("project") || lastMsg.includes("项目") || lastMsg.includes("rewrite")) {
-    response = RESPONSES.project;
-  } else if (lastMsg.includes("english") || lastMsg.includes("英文")) {
-    response = RESPONSES.english;
-  } else if (lastMsg.includes("gap") || lastMsg.includes("差距") || lastMsg.includes("缺少") || lastMsg.includes("弥补")) {
-    response = RESPONSES.gap;
-  } else {
-    response = {
-      content:
-        "I understand you'd like to improve your resume. Based on your JD match analysis, here are the top areas we should work on:\n\n" +
-        "1. Your match score shows room for improvement in **Project Experience** — let's quantify your impact\n" +
-        "2. **Skill matching** can be boosted by adding middleware depth (Redis/Kafka specifics)\n" +
-        "3. Your education background is a strong point — let's feature it prominently\n\n" +
-        "What would you like to tackle first?",
-    };
+  // Use real LLM if configured, otherwise mock
+  if (apiKey && apiKey !== "sk-your-api-key-here") {
+    try {
+      const response = await callLLM(messages, context);
+      return NextResponse.json(response);
+    } catch (err: any) {
+      console.error("LLM call failed, falling back to mock:", err.message);
+    }
   }
 
-  return NextResponse.json(response);
+  // Fallback: mock response
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const lastMsg = messages[messages.length - 1]?.content || "";
+  return NextResponse.json(getMockResponse(lastMsg));
 }
