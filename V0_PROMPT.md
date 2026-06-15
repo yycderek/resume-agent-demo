@@ -1,4 +1,4 @@
-Build a single-page AI Resume Agent web app with 4 states: Home, Loading, Report+Chat, and Fullscreen Chat. All Chinese text.
+Build a single-page AI Resume Agent web app with 4 states: Home, Loading, Report+Chat, and Fullscreen Chat. Default language: English. Support Chinese via language toggle.
 
 === COLOR SYSTEM ===
 - Primary: #2563EB, Secondary: #3B82F6, Success: #10B981, Warning: #F59E0B, Danger: #EF4444
@@ -84,7 +84,7 @@ Input area (fixed bottom of chat panel):
 - Styling: px-3 py-1.5, text-xs font-medium, rounded-full, border border-text-secondary/30, bg-white/80 backdrop-blur-sm, shadow-sm
 - Hover: border darkens, text color intensifies
 - Click toggles all UI text between Chinese and English
-- Default: Chinese (中)
+- Default: English (EN)
 
 === GLOBAL ===
 - Font: Inter for headings, system sans-serif for CJK

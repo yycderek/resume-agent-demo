@@ -21,7 +21,7 @@ export const translations = {
     startAnalyze: "🔍 Start Analysis",
     step1: "Upload",
     step2: "Analyze",
-    step3: "View Report",
+    step3: "Chat & Refine",
     demoBadge: "Demo · For demonstration only · No data stored",
     manualPasteText: "Pasted text",
     chars: "chars",
@@ -70,6 +70,12 @@ export const translations = {
     example: "✏️ Edit Example",
     impact: "📈 Impact",
 
+    // Chat actions
+    askAI: "💬 Ask AI",
+    letAIRewrite: "✨ Let AI Rewrite",
+    applyToResume: "✅ Apply to Resume",
+    rewriteAgain: "🔄 Try Again",
+
     // Section titles array for mini TOC
     sectionTitles: [
       "JD Overview",
@@ -96,6 +102,26 @@ export const translations = {
 
     // Language toggle
     langToggle: "中",
+
+    // Chat panel
+    chatTitle: "💬 Resume Optimizer",
+    chatSubtitle: "I can help rewrite, close gaps, and polish your resume",
+    newChat: "🔄 New Chat",
+    clearChat: "🗑 Clear",
+    chatPlaceholder: "Ask anything... e.g. \"Help me rewrite my project experience\"",
+    chatWelcome: "I\'ve analyzed your JD and resume. Your overall match is {score}%. We can work on:\n• Quantifying your achievements\n• Closing experience gaps\n• Optimizing keywords\nWhere would you like to start?",
+    chatSuggestRewrite: "📝 Suggested Rewrite",
+    chatApplied: "Applied to optimized resume",
+
+    // Quick actions
+    quickPolish: "Polish work experience",
+    quickKeywords: "Optimize keywords",
+    quickProject: "Rewrite project description",
+    quickEnglish: "Generate English version",
+
+    // Fullscreen chat
+    fullscreenChat: "Fullscreen Chat",
+    backToReport: "Back to Report",
   },
 
   zh: {
@@ -120,7 +146,7 @@ export const translations = {
     startAnalyze: "🔍 开始分析",
     step1: "上传",
     step2: "分析",
-    step3: "查看报告",
+    step3: "对话优化",
     demoBadge: "Demo版本 · 仅供演示 · 不存储上传数据",
     manualPasteText: "手动粘贴文本",
     chars: "字符",
@@ -169,6 +195,12 @@ export const translations = {
     example: "✏️ 修改示例",
     impact: "📈 影响",
 
+    // Chat actions
+    askAI: "💬 问AI",
+    letAIRewrite: "✨ 让AI改写",
+    applyToResume: "✅ 应用到简历",
+    rewriteAgain: "🔄 再改一版",
+
     // Section titles array for mini TOC
     sectionTitles: [
       "JD概览",
@@ -195,6 +227,26 @@ export const translations = {
 
     // Language toggle
     langToggle: "EN",
+
+    // Chat panel
+    chatTitle: "💬 简历优化助手",
+    chatSubtitle: "我可以帮你改写简历、弥补差距、优化表达",
+    newChat: "🔄 新对话",
+    clearChat: "🗑 清空",
+    chatPlaceholder: "输入你的问题，比如\"帮我重写项目经历\"...",
+    chatWelcome: "我已经分析了你的JD和简历，整体匹配度是{score}%。我们可以从以下方面优化：\n• 量化项目成果\n• 弥补经验差距\n• 优化技能关键词\n你想从哪里开始？",
+    chatSuggestRewrite: "📝 建议改写",
+    chatApplied: "已更新到优化简历",
+
+    // Quick actions
+    quickPolish: "帮我润色工作经历",
+    quickKeywords: "优化技能关键词",
+    quickProject: "改写项目描述",
+    quickEnglish: "生成英文版简历",
+
+    // Fullscreen chat
+    fullscreenChat: "全屏对话",
+    backToReport: "返回报告",
   },
 } as const;
 

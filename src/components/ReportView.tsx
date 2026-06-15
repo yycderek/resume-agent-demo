@@ -103,7 +103,17 @@ function BarChart({
   );
 }
 
-export default function ReportView({ report, onBack }: { report: ReportData; onBack?: () => void }) {
+export default function ReportView({
+  report,
+  onBack,
+  onAskAI,
+  onRewrite,
+}: {
+  report: ReportData;
+  onBack?: () => void;
+  onAskAI?: (text: string) => void;
+  onRewrite?: (text: string) => void;
+}) {
   const { t } = useLang();
   const [activeSection, setActiveSection] = useState(0);
   const [expandedSuggestions, setExpandedSuggestions] = useState<Set<number>>(new Set());
@@ -127,6 +137,11 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
       const minIdx = offsets.indexOf(Math.min(...offsets));
       if (minIdx >= 0) setActiveSection(minIdx);
     };
+    const container = document.querySelector(".overflow-y-auto");
+    if (container) {
+      container.addEventListener("scroll", handleScroll, { passive: true });
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -165,9 +180,9 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
       <motion.nav
         initial={{ y: -60 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-text-secondary/10"
+        className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-text-secondary/10"
       >
-        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="px-6 py-3 flex items-center justify-between">
           <h1 className="text-lg font-bold text-text">{t.reportTitle}</h1>
           <div className="flex gap-2">
             <button
@@ -202,7 +217,7 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
           </div>
         </div>
         {/* Mini TOC */}
-        <div className="max-w-4xl mx-auto px-6 pb-2 flex gap-3 overflow-x-auto text-xs">
+        <div className="px-6 pb-2 flex gap-3 overflow-x-auto text-xs">
           {sectionTitles.map((title, i) => (
             <button
               key={i}
@@ -222,7 +237,7 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
       </motion.nav>
 
       {/* Scrollable Content */}
-      <div className="pt-28 pb-20 max-w-4xl mx-auto px-4 space-y-8">
+      <div className="pb-20 px-4 space-y-8 pt-4">
         {/* Section 1: JD Overview */}
         <motion.section
           ref={(el) => { sectionRefs.current[0] = el; }}
@@ -284,7 +299,6 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
           <p className="text-xs text-text-secondary mb-4">{t.aiGeneratedProfile}</p>
 
           <div className="space-y-4">
-            {/* Experience */}
             <div>
               <h3 className="font-semibold text-text text-sm mb-2">{t.workExperience}</h3>
               <ul className="space-y-2">
@@ -295,7 +309,6 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
                 ))}
               </ul>
             </div>
-            {/* Skills */}
             <div>
               <h3 className="font-semibold text-text text-sm mb-2">{t.skills}</h3>
               <div className="flex flex-wrap gap-2">
@@ -309,7 +322,6 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
                 ))}
               </div>
             </div>
-            {/* Projects */}
             <div>
               <h3 className="font-semibold text-text text-sm mb-2">{t.projectExperience}</h3>
               <ul className="space-y-2">
@@ -320,7 +332,6 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
                 ))}
               </ul>
             </div>
-            {/* Education */}
             <div>
               <h3 className="font-semibold text-text text-sm mb-2">{t.education}</h3>
               <p className="text-sm text-text">{report.idealResume.education}</p>
@@ -372,12 +383,22 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
                   viewport={{ once: true }}
                   className="p-4 rounded-xl border border-text-secondary/10 hover:shadow-sm transition-shadow"
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`w-2 h-2 rounded-full ${sev.dot}`} />
-                    <h3 className="font-semibold text-text text-sm">{gap.description}</h3>
-                    <span className={`px-2 py-0.5 text-xs rounded-full border ${sev.color}`}>
-                      {sev.label}
-                    </span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${sev.dot}`} />
+                      <h3 className="font-semibold text-text text-sm">{gap.description}</h3>
+                      <span className={`px-2 py-0.5 text-xs rounded-full border ${sev.color}`}>
+                        {sev.label}
+                      </span>
+                    </div>
+                    {onAskAI && (
+                      <button
+                        onClick={() => onAskAI(`How can I close this gap: "${gap.description}"?`)}
+                        className="px-2.5 py-1 text-xs rounded-full border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
+                      >
+                        {t.askAI}
+                      </button>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                     <div className="p-3 rounded-lg bg-danger/5 border border-danger/20">
@@ -460,9 +481,19 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
                             <p className="text-xs font-medium text-success mb-1">{t.example}</p>
                             <p className="text-xs text-text whitespace-pre-line">{sug.example}</p>
                           </div>
-                          <div className="p-3 rounded-lg bg-primary/5">
-                            <p className="text-xs font-medium text-primary mb-1">{t.impact}</p>
-                            <p className="text-xs text-text-secondary">{sug.impact}</p>
+                          <div className="p-3 rounded-lg bg-primary/5 flex justify-between items-start">
+                            <div>
+                              <p className="text-xs font-medium text-primary mb-1">{t.impact}</p>
+                              <p className="text-xs text-text-secondary">{sug.impact}</p>
+                            </div>
+                            {onRewrite && (
+                              <button
+                                onClick={() => onRewrite(`Help me fix this: "${sug.problem}". ${sug.suggestion}`)}
+                                className="ml-3 flex-shrink-0 px-2.5 py-1 text-xs rounded-lg bg-primary text-white hover:bg-primary-light transition-colors"
+                              >
+                                {t.letAIRewrite}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -487,7 +518,6 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
             <h2 className="text-xl font-bold text-text">{t.optimizedResume}</h2>
           </div>
 
-          {/* Resume header */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -529,7 +559,6 @@ export default function ReportView({ report, onBack }: { report: ReportData; onB
             ))}
           </div>
 
-          {/* Export CTA */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
